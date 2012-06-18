@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+# TODO: Turn this into a makefile. Currently builds for OS X / Homebrew MySQL
+
+DEST=/usr/local/Cellar/mysql/5.5.25/lib/plugin/
+gcc -Wall -bundle -bundle_loader /usr/local/bin/mysqld -o murmur3_mysql_udf.so `/usr/local/bin/mysql_config --cflags` murmur3_mysql_udf.c murmur3.c
+cp murmur3_mysql_udf.so "${DEST}"

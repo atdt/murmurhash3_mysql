@@ -1,0 +1,3 @@
+[submodule "lib/murmur3"]
+	path = lib/murmur3
+	url = https://github.com/PeterScott/murmur3.git
