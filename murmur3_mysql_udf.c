@@ -22,6 +22,12 @@
  * MySQL User Defined Function for the 32-bit variant of MurmurHash3, a fast
  * non-cryptographic hash.
  *
+ * To install, run `make`, copy to MySQL plugins folder, and run the following
+ * queries:
+ *
+ * DROP FUNCTION IF EXISTS mur3_32;
+ * CREATE FUNCTION mur3_32 RETURNS INTEGER SONAME "murmur3_mysql_udf.so";
+ *
  */
 
 #include <mysql.h>
