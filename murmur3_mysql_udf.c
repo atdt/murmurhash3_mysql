@@ -69,13 +69,18 @@ char *mur3_32_digest(
  */
 my_bool mur3_32_init(UDF_INIT *initid, UDF_ARGS *args, char *message)
 {
-    if (args->arg_count != 1) {
-	strcpy(message, "mur3_32 requires exactly one parameter");
+    uint i;
+
+    if (args->arg_count < 1) {
+	strcpy(message, "mur3_32() requires one or more parameters");
 	return 1;
     }
-    args->arg_type[0] = STRING_RESULT;     /** coerces first parameter to string */
+    for (i = 0; i < args->arg_count; i++) {
+        args->arg_type[i] = STRING_RESULT;    /** Request cast to string */
+        args->maybe_null[i] = 0;              /** Reject NULLs */
+    }
     initid->max_length = sizeof(uint32_t);
-    initid->maybe_null = 1;                /** a null key hashes to null */
+    initid->maybe_null = 0;
     return 0;
 }
 
@@ -86,14 +91,12 @@ my_bool mur3_32_init(UDF_INIT *initid, UDF_ARGS *args, char *message)
  */
 long long mur3_32(UDF_INIT *initid, UDF_ARGS *args, char *is_null, char *error)
 {
-    const char *key = args->args[0];
-    int len = args->lengths[0];
     uint32_t hash[1];
+    uint i;
 
-    if (args->args[0] == NULL) {
-	*is_null = 1;
-	return (long long) NULL;
+    hash[0] = MUR3_32_SEED;                   /** set initial seed */
+    for (i = 0; i < args->arg_count; i++) {   /** iterate arguments */
+        MurmurHash3_x86_32(args->args[i], args->lengths[i], hash[0], hash);
     }
-    MurmurHash3_x86_32(key, len, MUR3_32_SEED, hash);
     return hash[0];
 }
