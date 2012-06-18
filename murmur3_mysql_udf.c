@@ -29,11 +29,11 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <inttypes.h>
-#include "lib/murmur3.h"
+#include "lib/murmur3/murmur3.h"
 
 #define MUR3_32_SEED ((uint32_t) 0)
 
-/* Prototypes */
+/** prototypes */
 
 my_bool mur3_32_init(
         UDF_INIT *initid
