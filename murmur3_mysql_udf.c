@@ -19,8 +19,8 @@
  *
  * @section DESCRIPTION
  *
- * MySQL User Defined Function for the 32-bit variant of MurmurHash3, a fast,
- * non-cryptographic hash function created by Austin Appleby.
+ * MySQL User Defined Function for the 32-bit variant of MurmurHash3, a fast
+ * non-cryptographic hash.
  *
  */
 
@@ -69,18 +69,17 @@ char *mur3_32_digest(
  */
 my_bool mur3_32_init(UDF_INIT *initid, UDF_ARGS *args, char *message)
 {
-    uint i;
-
-    if (args->arg_count < 1) {
-	strcpy(message, "mur3_32() requires one or more parameters");
+    if (args->arg_count != 1) {
+	strcpy(message, "mur3_32 requires exactly one parameter");
 	return 1;
     }
-    for (i = 0; i < args->arg_count; i++) {
-        args->arg_type[i] = STRING_RESULT;    /** Request cast to string */
-        args->maybe_null[i] = 0;              /** Reject NULLs */
-    }
+
+    args->arg_type[0] = STRING_RESULT;    /** Coerce key parameter to string */
+    args->maybe_null[0] = 0;              /** Reject NULL as key value */
+
     initid->max_length = sizeof(uint32_t);
     initid->maybe_null = 0;
+
     return 0;
 }
 
@@ -91,12 +90,10 @@ my_bool mur3_32_init(UDF_INIT *initid, UDF_ARGS *args, char *message)
  */
 long long mur3_32(UDF_INIT *initid, UDF_ARGS *args, char *is_null, char *error)
 {
+    const char *key = args->args[0];
+    int len = args->lengths[0];
     uint32_t hash[1];
-    uint i;
 
-    hash[0] = MUR3_32_SEED;                   /** set initial seed */
-    for (i = 0; i < args->arg_count; i++) {   /** iterate arguments */
-        MurmurHash3_x86_32(args->args[i], args->lengths[i], hash[0], hash);
-    }
+    MurmurHash3_x86_32(key, len, MUR3_32_SEED, hash);
     return hash[0];
 }
