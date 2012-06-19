@@ -1,2 +1,3 @@
 Provides a MySQL UDF (User Defined Function) for the 32-bit variant of MurmurHash3, a fast, non-cryptographic hash function created by Austin Appleby.
 
+Usage: mur3_32( str key [, int initial seed ] );

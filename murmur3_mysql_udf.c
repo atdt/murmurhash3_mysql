@@ -75,13 +75,26 @@ char *mur3_32_digest(
  */
 my_bool mur3_32_init(UDF_INIT *initid, UDF_ARGS *args, char *message)
 {
-    if (args->arg_count != 1) {
-	strcpy(message, "mur3_32 requires exactly one parameter");
+    long long seed;
+
+    if (args->arg_count < 1 || args->arg_count > 2) {
+	strcpy(message, "mur3_32 accepts at least one and at most two params");
 	return 1;
     }
 
+    args->maybe_null[0] = 0;              /** Reject NULL key values */
+
     args->arg_type[0] = STRING_RESULT;    /** Coerce key parameter to string */
-    args->maybe_null[0] = 0;              /** Reject NULL as key value */
+
+    if (args->arg_count == 2) {           /** Ensure seed is castable as uint32_t */
+	args->maybe_null[1] = 0;          /** Reject NULL seed values */
+	args->arg_type[1] = INT_RESULT;   /** Coerce seed parameter to integer */
+	seed = *((long long*) args->args[1]);
+	if (seed < 0 || seed > UINT32_MAX) {
+	    snprintf(message, MYSQL_ERRMSG_SIZE,
+		    "seed must be between 0 and %hu", UINT32_MAX);
+	}
+    }
 
     initid->max_length = sizeof(uint32_t);
     initid->maybe_null = 0;
@@ -96,10 +109,18 @@ my_bool mur3_32_init(UDF_INIT *initid, UDF_ARGS *args, char *message)
  */
 long long mur3_32(UDF_INIT *initid, UDF_ARGS *args, char *is_null, char *error)
 {
+    long long seed;
+    
+    if (args->arg_count == 2) {
+	seed = *((long long*) args->args[1]);
+    } else {  /** no seed param, so use default */
+	seed = MUR3_32_SEED;
+    }
+
     const char *key = args->args[0];
     int len = args->lengths[0];
     uint32_t hash[1];
 
-    MurmurHash3_x86_32(key, len, MUR3_32_SEED, hash);
+    MurmurHash3_x86_32(key, len, (uint32_t) seed, hash);
     return hash[0];
 }
